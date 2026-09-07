@@ -52,7 +52,7 @@ app.use('/api/sync', syncRoutes);
 app.use(notFound);
 app.use(errorHandler);
 
-app.listen(PORT, async () => {
+app.listen(PORT, '0.0.0.0', async () => {
   console.log(`Money Collection API running on http://localhost:${PORT}`);
 
   try {
