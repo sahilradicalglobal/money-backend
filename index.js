@@ -26,6 +26,10 @@ app.use(helmet());
 app.use(cors({ origin: process.env.CORS_ORIGIN || '*' }));
 app.use(express.json({ limit: '10mb' }));
 
+app.get("/", (req, res) => {
+    res.send("Hello Money Lender");
+});
+
 app.get('/health', async (req, res) => {
   try {
     await pool.query('SELECT 1');
