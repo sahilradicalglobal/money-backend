@@ -14,13 +14,17 @@ const syncRoutes = require('./src/routes/sync.routes');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+pool.getConnection((err) => {
+  if (err) {
+    console.log("Database connection failed:", err);
+  } else {
+    console.log("Connected to MySQL database");
+  }
+});
+
 app.use(helmet());
 app.use(cors({ origin: process.env.CORS_ORIGIN || '*' }));
 app.use(express.json({ limit: '10mb' }));
-
-app.get('/', (req, res) => {
-  res.send('Hello Money Lenders!');
-});
 
 app.get('/health', async (req, res) => {
   try {
@@ -57,15 +61,7 @@ app.use(notFound);
 app.use(errorHandler);
 
 app.listen(PORT, '0.0.0.0', async () => {
-  console.log(`Money Collection API running on http://localhost:${PORT}`);
-
-  try {
-    const db = await testConnection();
-    console.log('✅ Database connected successfully!');
-  } catch (err) {
-    console.error('❌ Database connection failed:', err.message);
-    console.error('   Check .env settings (DB_HOST, DB_USER, DB_PASSWORD, DB_NAME)');
-  }
+  console.log(`Money Collection API running on ${PORT}`);
 });
 
 module.exports = app;

@@ -29,6 +29,10 @@ async function migrateAuth() {
     );
     console.log('Added users.auth_provider');
   }
+  if (!(await columnExists(conn, 'users', 'profile_url'))) {
+    await conn.query('ALTER TABLE users ADD COLUMN profile_url TEXT NULL AFTER email');
+    console.log('Added users.profile_url');
+  }
 
   await conn.end();
   console.log('Auth migration complete');

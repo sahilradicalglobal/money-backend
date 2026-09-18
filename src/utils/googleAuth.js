@@ -14,9 +14,13 @@ function getOAuthClient() {
  * Returns { email, name, picture, sub } or throws.
  */
 async function verifyGoogleIdToken(idToken) {
-  const clientId = process.env.GOOGLE_CLIENT_ID;
-  if (!clientId) {
-    const err = new Error('Google Sign-In is not configured on the server (GOOGLE_CLIENT_ID)');
+  const configuredAudiences = [
+    process.env.GOOGLE_CLIENT_ID,
+    process.env.GOOGLE_ANDROID_CLIENT_ID,
+  ].filter(Boolean);
+
+  if (!configuredAudiences.length) {
+    const err = new Error('Google Sign-In is not configured on the server (GOOGLE_CLIENT_ID/GOOGLE_ANDROID_CLIENT_ID)');
     err.status = 503;
     throw err;
   }
@@ -24,7 +28,7 @@ async function verifyGoogleIdToken(idToken) {
   const client = getOAuthClient();
   const ticket = await client.verifyIdToken({
     idToken,
-    audience: clientId,
+    audience: configuredAudiences.length === 1 ? configuredAudiences[0] : configuredAudiences,
   });
   const payload = ticket.getPayload();
   if (!payload?.email) {

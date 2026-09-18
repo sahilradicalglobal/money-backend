@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS users (
   id            BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   name          VARCHAR(120)    NOT NULL,
   email         VARCHAR(191)    NOT NULL,
+  profile_url   TEXT            NULL,
   business_name VARCHAR(255)    NULL,
   auth_provider ENUM('EMAIL','GOOGLE') NOT NULL DEFAULT 'EMAIL',
   password_hash VARCHAR(255)    NOT NULL,

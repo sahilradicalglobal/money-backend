@@ -36,6 +36,7 @@ function userPayload(row) {
     name: row.name,
     email: row.email,
     businessName: row.business_name || null,
+    profileUrl: row.profile_url || null,
     authProvider: row.auth_provider || 'EMAIL',
   };
 }
@@ -138,27 +139,34 @@ async function googleAuth(req, res, next) {
       });
     }
 
-    const { name, email } = googleUser;
+    const { name, email, picture } = googleUser;
     const rows = await query(
-      'SELECT id, name, email, business_name, auth_provider FROM users WHERE email = :email',
+      'SELECT id, name, email, profile_url, business_name, auth_provider FROM users WHERE email = :email',
       { email }
     );
     const ts = nowMs();
 
     if (rows.length) {
       const user = rows[0];
+      if (picture && user.profile_url !== picture) {
+        await query(
+          'UPDATE users SET profile_url = :profileUrl, updated_at = :updatedAt WHERE id = :id',
+          { profileUrl: picture, updatedAt: ts, id: user.id }
+        );
+      }
       const token = signToken({ userId: user.id, email: user.email });
+      const refreshedUser = { ...user, profile_url: picture || user.profile_url || null };
       return res.json({
         success: true,
-        data: { token, user: userPayload(user), isNewUser: false },
+        data: { token, user: userPayload(refreshedUser), isNewUser: false },
       });
     }
 
     const passwordHash = await bcrypt.hash(crypto.randomBytes(24).toString('hex'), 10);
     const result = await query(
-      `INSERT INTO users (name, email, business_name, auth_provider, password_hash, created_at, updated_at)
-       VALUES (:name, :email, NULL, 'GOOGLE', :passwordHash, :createdAt, :updatedAt)`,
-      { name, email, passwordHash, createdAt: ts, updatedAt: ts }
+      `INSERT INTO users (name, email, profile_url, business_name, auth_provider, password_hash, created_at, updated_at)
+       VALUES (:name, :email, :profileUrl, :businessName, 'GOOGLE', :passwordHash, :createdAt, :updatedAt)`,
+      { name, email, profileUrl: picture || null, businessName: null, passwordHash, createdAt: ts, updatedAt: ts }
     );
     const userId = result.insertId;
     await ensureSettings(userId, ts);
@@ -180,7 +188,7 @@ async function googleAuth(req, res, next) {
 async function profile(req, res, next) {
   try {
     const rows = await query(
-      'SELECT id, name, email, business_name, auth_provider, created_at, updated_at FROM users WHERE id = :id',
+      'SELECT id, name, email, profile_url, business_name, auth_provider, created_at, updated_at FROM users WHERE id = :id',
       { id: req.user.id }
     );
     if (!rows.length) {
