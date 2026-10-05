@@ -21,6 +21,22 @@ CREATE TABLE IF NOT EXISTS users (
   UNIQUE KEY uk_users_email (email)
 ) ENGINE=InnoDB;
 
+CREATE TABLE IF NOT EXISTS google_play_subscriptions (
+  id                   BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  user_id              BIGINT UNSIGNED NOT NULL,
+  purchase_token_hash  CHAR(64)        NOT NULL,
+  product_id           VARCHAR(150)    NOT NULL,
+  base_plan_id         VARCHAR(150)    NOT NULL,
+  subscription_state   VARCHAR(64)     NOT NULL,
+  expiry_time          DATETIME        NULL,
+  updated_at           BIGINT          NOT NULL,
+  PRIMARY KEY (id),
+  UNIQUE KEY uk_google_play_purchase_token (purchase_token_hash),
+  KEY idx_google_play_user_expiry (user_id, expiry_time),
+  CONSTRAINT fk_google_play_subscription_user
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
 CREATE TABLE IF NOT EXISTS money_records (
   id                   BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   user_id              BIGINT UNSIGNED NOT NULL,

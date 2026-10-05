@@ -10,6 +10,7 @@ const recordsRoutes = require('./src/routes/records.routes');
 const paymentsRoutes = require('./src/routes/payments.routes');
 const miscRoutes = require('./src/routes/misc.routes');
 const syncRoutes = require('./src/routes/sync.routes');
+const subscriptionRoutes = require('./src/routes/subscription.routes');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -44,13 +45,14 @@ app.get('/', (req, res) => {
     success: true,
     name: 'Money Collection API',
     version: '1.0.0',
-    note: 'Data sync only — interest calculations stay on the Android app',
+    note: 'Subscription verification and data sync; interest calculations stay on the Android app',
     endpoints: {
       auth: '/api/auth',
       records: '/api/records',
       payments: '/api/records/:recordId/payments',
       dashboard: '/api/dashboard/summary',
       sync: '/api/sync/backup',
+      subscriptions: '/api/subscriptions/google/verify',
     },
   });
 });
@@ -60,6 +62,7 @@ app.use('/api/records', recordsRoutes);
 app.use('/api/records/:recordId/payments', paymentsRoutes);
 app.use('/api', miscRoutes);
 app.use('/api/sync', syncRoutes);
+app.use('/api/subscriptions', subscriptionRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

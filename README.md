@@ -1,9 +1,8 @@
 # Money Collection — Node.js + MySQL Backend
 
-Backend API for the **Money Calculator** Android app.
+Backend API for the **Money Calculator** Android app, including Google Play subscription verification.
 
-> **Important:** This server does **NOT** calculate interest or EMI.  
-> The Android app performs all calculations locally. The backend only **stores and syncs** pre-calculated data (records, payments, history, settings).
+> **Important:** This server does **NOT** calculate interest or EMI. The Android app performs those calculations locally. The backend stores/syncs app data and verifies Google Play subscription purchase tokens.
 
 ---
 
@@ -48,6 +47,20 @@ DB_NAME=money_collection
 JWT_SECRET=your_long_random_secret
 PORT=3000
 ```
+
+For Google Play subscriptions, also configure the Play Developer API. Enable the
+Android Publisher API in the Google Cloud project, grant its service account
+access to this app in Play Console, and configure one of these server-side
+credential values (never put service-account credentials in the Android app):
+
+```env
+GOOGLE_PLAY_PACKAGE_NAME=com.radicalapp.moneylender
+GOOGLE_PLAY_SERVICE_ACCOUNT_FILE=C:\secure\google-play-service-account.json
+```
+
+Alternatively, inject `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON` through your hosting
+provider's secret environment variables. Then run `npm run db:migrate` to create
+the subscription table before deploying the backend.
 
 ### 3. Install & migrate
 
@@ -97,6 +110,15 @@ Open: http://localhost:3000/health
 | GET | `/api/dashboard/summary` | Total given, received, outstanding |
 | GET/PUT | `/api/settings` | App settings sync |
 | GET/POST/DELETE | `/api/history` | Calculation history |
+
+### Google Play subscriptions
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/subscriptions/google/verify` | Verify a purchase token with Google Play and bind the subscription to the signed-in user |
+
+The Android app sends product `mlcm_premium_monthly` and base plan `monthly`.
+The backend checks the Play Developer API response, app account binding, product,
+base plan, subscription state, and expiry before reporting an entitlement.
 
 ### Backup Sync (Android compatible)
 | Method | Endpoint | Description |
